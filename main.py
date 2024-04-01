@@ -1,11 +1,10 @@
 import pygame
 import pygame_textinput
 from interpretMove import interpreter
+from tkinter import messagebox
 
 # % 2 == 0: Black
 # % 2 == 1: White
-
-moves = 1
 
 def startingPosition():
     # White
@@ -39,6 +38,10 @@ def screenDefinition():
     screen_width = 1000
     screen_height = 800
     screen = pygame.display.set_mode((screen_width, screen_height))
+    
+    pygame.display.set_caption("PyChess")
+    icon = pygame.image.load("img/wK.svg")
+    pygame.display.set_icon(icon)
 
     return screen
 
@@ -53,7 +56,6 @@ def defineColor(piece):
 #end defineColor
 
 def defineInput():
-    pygame.display.set_caption("PyChess")
     font = pygame.font.SysFont("Consolas", 20)
     textinput = pygame_textinput.TextInputVisualizer(font_object=font)
     return textinput
@@ -80,9 +82,9 @@ def updateBoard(screen, board):
 
 #end updateBoard
 
-def plotBoard(screen):
-    black = (100, 100, 100)
-    white = (200, 200, 200)
+def plotBoard(screen, moves):
+    black = (118,150,86)
+    white = (238,238,210)
     
     for i in range(8):
         for j in range(8):
@@ -94,8 +96,16 @@ def plotBoard(screen):
     font = pygame.freetype.SysFont("Consolas", 20, True)
     font.render_to(screen, (854, 50), 'Welcome', (20, 20, 20))
     font.render_to(screen, (846, 70), 'To Pychess', (20, 20, 20))
+    
     font = pygame.freetype.SysFont("Consolas", 15, True)
     font.render_to(screen, (845, 120), 'Input your move', (20, 20, 20,))
+    
+    font = pygame.freetype.SysFont("Consolas", 12, True)
+    font.render_to(screen, (850, 730), 'Who is moving', (20, 20, 20,))
+    
+    font = pygame.freetype.SysFont("Consolas", 15, True)
+    whoIsMoving = 'White' if moves % 2 == 1 else 'Black'
+    font.render_to(screen, (875, 750), whoIsMoving, (20, 20, 20,))
     
     #textinput = 
     
@@ -107,13 +117,18 @@ def handleInput(screen, textinput, events):
 
 #end handleInput
 
-def handleMove(textinput, board):
+def handleMove(textinput, moves, board):
     newBoard = interpreter(textinput.value, moves, board)
     
     textinput.value = ''
     
-    if newBoard != 'ilegal move' and newBoard != 'invalid move':
-        return board
+    if len(newBoard) != 64:
+        messagebox.showinfo('Error', newBoard)
+        data = [moves, board]
+        return data
+    else:
+        data = [moves+1, newBoard]
+        return data
 
 def run():
     pygame.init()
@@ -122,6 +137,8 @@ def run():
 
     screen = screenDefinition()
     board = startingPosition()
+    
+    moves = 1
 
     clock = pygame.time.Clock()
 
@@ -132,10 +149,15 @@ def run():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                board = handleMove(textinput, board)
+                if textinput.value == "": 
+                    messagebox.showinfo("No move 'written", "Type a move with your keyboard")
+                else:
+                    data = handleMove(textinput, moves, board)
+                    moves = data[0]
+                    board = data[1]
             
         #Game logic
-        plotBoard(screen)
+        plotBoard(screen, moves)
         
         updateBoard(screen, board)
         handleInput(screen, textinput, events)
