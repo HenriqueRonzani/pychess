@@ -300,45 +300,45 @@ def queenLegalMoves(position, board):
 def knightLegalMoves(position, board):
     piece = board[position]
     enemies = checkEnemies(piece)
-    
     moves = []
-  
+    
     if position % 8 != 0:
         if position + 15 < 64:
-            if board[position] == 0 or board[position] in enemies:
+            if board[position + 15] == "0" or board[position + 15] in enemies:
                 moves.append(position+15)
         if position -17 >= 0:
-            if board[position] == 0 or board[position] in enemies:
+            if board[position - 17] == "0" or board[position - 17] in enemies:
                 moves.append(position-17)
 
         if (position -1) % 8 != 0:
             if position + 6 < 64:
-                if board[position] == 0 or board[position] in enemies:
+                if board[position + 6] == "0" or board[position + 6] in enemies:
                     moves.append(position+6)
             if position -10 >= 0:
-                if board[position] == 0 or board[position] in enemies:
+                if board[position - 10] == "0" or board[position - 10] in enemies:
                     moves.append(position-10)
     
     if (position+1) % 8 != 0:
         if position + 17 < 64:
-            if board[position] == 0 or board[position] in enemies:
+            if board[position + 17] == "0" or board[position + 17] in enemies:
                 moves.append(position+17)
         if position -15 >= 0:
-            if board[position] == 0 or board[position] in enemies:
+            if board[position - 15] == "0" or board[position - 15] in enemies:
                 moves.append(position-15)
         
         if (position + 2) % 8 != 0:
             if position + 10 < 64:
-                if board[position] == 0 or board[position] in enemies:
+                if board[position + 10] == "0" or board[position + 10] in enemies:
                     moves.append(position+10)
             if position -6 >= 0:
-                if board[position] == 0 or board[position] in enemies:
+                if board[position - 6] == "0" or board[position - 6] in enemies:
                     moves.append(position-6)
     
     return moves
 #end knight moves
 
 def kingPossibleMoves(position, board):
+    
     piece = board[position]
     enemies = checkEnemies(piece)
     
@@ -389,7 +389,7 @@ def whitePawnLegalMoves(position, board):
             
             if position + 16 < 64:
                 
-                if position in range(8,16,1) and board[position+16] == '0':
+                if position in range(8,16) and board[position+16] == '0':
                     moves.append(position+16)
     
     return moves
@@ -414,15 +414,16 @@ def whitePawnAttack(position, board):
 
 def blackPawnLegalMoves(position, board):
     moves = []
+    
     if position - 8 >= 0:
         
         if board[position-8] == '0':
             moves.append(position-8)
             
             if position - 16 >= 0:
-                if position in range(48,56,1) and board[position-16] == '0':
+                if position in range(48,56) and board[position-16] == '0':
                     moves.append(position-16)
-    
+                    
     return moves
 #end pawn moves
 
@@ -431,8 +432,6 @@ def blackPawnAttack(position, board):
     enemies = checkEnemies(piece)
     
     moves = []
-    
-    
     if (position + 1 % 8) != 0 and position - 7 >= 0:
         if board[position-7] in enemies:
             moves.append(position-7)
@@ -440,6 +439,8 @@ def blackPawnAttack(position, board):
     if position % 8 != 0 and position - 9 >= 0:
         if board[position-9] in enemies:
             moves.append(position-9)
+            
+    return moves
 #end black pawn attack
 
 def pawnLegalMoves(position, board):
@@ -449,7 +450,7 @@ def pawnLegalMoves(position, board):
     if piece == 'p': 
         moves = blackPawnLegalMoves(position, board)
         moves += blackPawnAttack(position, board)
-    elif piece == 'p': 
+    elif piece == 'P': 
         moves = whitePawnLegalMoves(position, board)
         moves += whitePawnAttack(position, board)
     
