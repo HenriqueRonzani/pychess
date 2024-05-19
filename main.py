@@ -7,17 +7,10 @@ from tkinter import messagebox
 # % 2 == 1: White
 
 def startingPosition():
-    # White
-    # Rook = 1 || Knight = 2 || Bishop = 3
-    # Queen = 4 || King = 5 || Pawn = 6
-
-    # Black
-
-    # Rook = 7 || Knight = 8 || Bishop = 9
-    #/ Queen = A || King = B || Pawn = C
-
+    
+    # White pieces are uppercase
+    # Black pieces are lowercase
     #Blank = 0
-    #Starting board
     row8 = "rnbqkbnr"
     row7 = "pppppppp"
     row6 = "00000000"
@@ -28,7 +21,6 @@ def startingPosition():
     row1 = "RNBQKBNR"
     
     startingBoard = row1 + row2 + row3 + row4 + row5 + row6 + row7 + row8
-    #end starting board
 
     return startingBoard
 
@@ -117,17 +109,23 @@ def handleInput(screen, textinput, events):
 
 #end handleInput
 
-def handleMove(textinput, moves, board):
-    newBoard = interpreter(textinput.value, moves, board)
+def handleMove(textinput, moveCount, moveHistory ,board):
+    data = [textinput.value, moveCount, moveHistory, board]
+    
+    returnData = interpreter(data)
+    
+    newBoard = returnData[0]
+    moveData = returnData[1]
     
     textinput.value = ''
     
     if len(newBoard) != 64:
         messagebox.showinfo('Error', newBoard)
-        data = [moves, board]
+        data = [moveCount, board, moveHistory]
         return data
     else:
-        data = [moves+1, newBoard]
+        moveHistory.append(moveData)
+        data = [moveCount+1, newBoard, moveHistory]
         return data
 
 def run():
@@ -138,7 +136,8 @@ def run():
     screen = screenDefinition()
     board = startingPosition()
     
-    moves = 1
+    moveCount = 1
+    moveHistory = []
 
     clock = pygame.time.Clock()
 
@@ -150,14 +149,15 @@ def run():
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 if textinput.value == "": 
-                    messagebox.showinfo("No move 'written", "Type a move with your keyboard")
+                    messagebox.showinfo("No move written", "Type a move with your keyboard")
                 else:
-                    data = handleMove(textinput, moves, board)
-                    moves = data[0]
+                    data = handleMove(textinput, moveCount, moveHistory, board)
+                    moveCount = data[0]
                     board = data[1]
+                    moveHistory = data[2]
             
         #Game logic
-        plotBoard(screen, moves)
+        plotBoard(screen, moveCount)
         
         updateBoard(screen, board)
         handleInput(screen, textinput, events)
