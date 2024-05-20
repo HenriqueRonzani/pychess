@@ -9,23 +9,14 @@ rows = ['1','2','3','4','5','6','7','8']
 acceptedLetters = movingPieces + columns + rows + ['x', '-', 'O']
 
 # T d 4
-
-# T d d 4 -
-
-# T 1 d 4 -
-
-# T 1 x d 4 - 
-
-# T d x d 4 -
-
+# T d d 4
+# T 1 d 4
+# T 1 x d 4
+# T d x d 4
 # T d 1 x d 4
-
-# T d 1 d 4 - 
-
-# T x d 4 -
-
+# T d 1 d 4
+# T x d 4
 # 0 1 2 3 4 5
-
 # e 4
 # d x e 4
 
@@ -44,7 +35,7 @@ collumnNumbers = {
 def firstCheck(move):
     validMove = True
    
-    if len(move) > 5 or len(move) < 2:
+    if len(move) > 6 or len(move) < 2:
         validMove = False
     
     if len(move) == 2 and (move[0] not in columns or move[1] not in rows):
@@ -66,7 +57,7 @@ def makeMove(moveData, board):
     
     if isinstance(position, int):
         if board[position] != piece:
-            return 'Invalid move 2'
+            return 'Invalid move 1'
         
     elif position != '':
         
@@ -112,10 +103,10 @@ def makeMove(moveData, board):
                         
     
     if len(piecesMoving) != 1:
-        return 'Invalid move'
+        return 'Invalid move 2'
     
     if whereTo not in piecesMoving[0]:
-        return 'Invalid move 1'
+        return 'Invalid move 3'
     
     tempBoard = list(board)
 
@@ -183,11 +174,98 @@ def checkMoveType(move):
         row = move[5]
         return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
     
-    return 'Invalid move format'
+    return 'Invalid move 4'
     
+def handleCastle(move, board, piece, moveHistory):
+    
+    rows = {
+        'K': [0, 1, 2, 3, 4, 5, 6, 7],
+        'k': [56, 57, 58, 59, 60, 61, 62, 63]
+    }
+    
+    rookForKing = {
+        'k': 'r',
+        'K': 'R'
+    }
+    
+    if move == 'O-O':
+        positions = rows[piece][4:]
+        piecesInPositionArray = [board[i] for i in positions]
+        piecesInPositionString = ''.join(piecesInPositionArray)
+        
+        rook = rookForKing[piece]
+        
+        if piecesInPositionString == piece+'00'+rook:
+            for moveData in moveHistory:
+                if moveData[0] == rook and moveData[1] == positions[3]: return 'Cannot castle'
+                if moveData[0] == piece: return 'Cannot castle'
+            
+            if not checkIfCheck(board, piece, positions): return 'Cannot castle'
+            
+            tempBoard = list(board)
+            tempBoard[positions[0]] = '0'
+            tempBoard[positions[1]] = rook
+            tempBoard[positions[2]] = piece
+            tempBoard[positions[3]] = '0'
+            
+            finalBoard = ''.join(tempBoard)
+            return finalBoard
+    
+    if move == 'O-O-O':
+        positions = rows[piece][:5]
+        piecesInPositionArray = [board[i] for i in positions]
+        piecesInPositionString = ''.join(piecesInPositionArray)
+        
+        rook = rookForKing[piece]
+        
+        if piecesInPositionString == rook+'000'+piece:
+            for moveData in moveHistory:
+                if moveData[0] == rook and moveData[1] == positions[0]: return 'Cannot castle'
+                if moveData[0] == piece: return 'Cannot castle'
+            
+            safeToCastle = checkIfCheck(board, piece, positions)
+            print(safeToCastle)
+            
+            if not safeToCastle: return 'Cannot castle'
+        
+            tempBoard = list(board)
+            tempBoard[positions[0]] = '0'
+            tempBoard[positions[1]] = '0'
+            tempBoard[positions[2]] = piece
+            tempBoard[positions[3]] = rook
+            tempBoard[positions[4]] = '0'
+            
+            finalBoard = ''.join(tempBoard)
+        
+            return finalBoard
+            
+    return 'Invalid move 5'
+
+def checkIfCheck(board, piece, positions):
+    enemies = {
+        'K': ['r', 'n', 'b', 'q', 'p'],
+        'k': ['R', 'N', 'B', 'Q', 'P']
+    }
+    
+    attackingMoves = set()
+
+    for i, pieces in enumerate(board):
+        if pieces in enemies[piece]:
+            movesOfPiece = movement.movePiece(i, board)
+            if movesOfPiece != None:
+                attackingMoves |= set(movesOfPiece)
+
+    attackingMoves = list(attackingMoves)
+    for position in positions:
+        if position in attackingMoves:
+            print('false')
+            return False
+    
+    print('true')
+    return True        
+
 
 def interpreter(data):
-    exception = 'none'
     
     move = data[0]
     moveCount = data[1]
@@ -195,28 +273,28 @@ def interpreter(data):
     board = data[3]
     
     if not firstCheck(move): return "Move with invalid characters"
-
-    # if move in ['O-O', 'O-O-O']:
-    #     exception = handleCastle(move, moveHistory, moveCount, board)
-    
-    #     print(exception) 
-    #     return [exception, moveCount, board]
     
     try: 
         moveData = checkMoveType(move)
     except: 
-        return 'Invalid move format'
+        return 'Invalid move format 6'
     
-    if moveData == 'Invalid move format': 
-        return 'Invalid move format'
+    if moveData == 'Invalid move format 7': 
+        return 'Invalid move format 8'
     
     if moveData == "Castle":
-        return 'Castle'
-        # go to handleCastle
-    if moveCount % 2 == 0:
-        moveData[0] = moveData[0].lower()
-                
-    finalBoard = makeMove(moveData, board)
-
-    data = [finalBoard, moveData]
-    return data
+        # try:
+            piece = 'k' if moveCount % 2 == 0 else 'K'
+            finalBoard = handleCastle(move, board, piece, moveHistory)
+            return [finalBoard, "O-O"]
+        # except Exception as e:
+            return 'Invalid move 9'
+    else:
+        try:
+            if moveCount % 2 == 0: moveData[0] = moveData[0].lower()
+            
+            finalBoard = makeMove(moveData, board)
+            data = [finalBoard, moveData]
+            return data
+        except:
+            return 'Invalid move 10'

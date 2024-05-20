@@ -18,7 +18,7 @@ def startingPosition():
     row4 = "00000000"
     row3 = "00000000"
     row2 = "PPPPPPPP"
-    row1 = "RNBQKBNR"
+    row1 = "R000K00R"
     
     startingBoard = row1 + row2 + row3 + row4 + row5 + row6 + row7 + row8
 
@@ -109,7 +109,7 @@ def handleInput(screen, textinput, events):
 
 #end handleInput
 
-def handleMove(textinput, moveCount, moveHistory ,board):
+def handleMove(textinput, moveCount, moveHistory, board):
     data = [textinput.value, moveCount, moveHistory, board]
     
     returnData = interpreter(data)
