@@ -8,6 +8,8 @@ rows = ['1','2','3','4','5','6','7','8']
 
 acceptedLetters = movingPieces + columns + rows + ['x', '-', 'O']
 
+white = ['R','N','B','K','Q','P']
+
 # T d 4
 # T d d 4
 # T 1 d 4
@@ -47,83 +49,112 @@ def firstCheck(move):
                              
     return validMove
 
-def makeMove(moveData, board):
-    piece = moveData[0]
-    position = moveData[1]
-    whereTo = moveData[2]
-    
-    piecesMoving = []
-    pos = ''
-    
-    if isinstance(position, int):
-        if board[position] != piece:
-            return 'Invalid move 1'
-        
-    elif position != '':
-        
-        if position in rows:
-            piecesMoving = []
-                
-            for i in range(8):
-                tempPosition = (position - 1) * 8 + i 
-                
-                if board[tempPosition] == piece:
-                    tempMove = movement.movePiece(tempPosition, board)
-                
-                    if tempMove != None:
-                        if whereTo in tempMove:
-                            piecesMoving.append(tempMove)
-                            pos = tempPosition
-        
-        if position in columns:
-            piecesMoving = []
-            
-            for i in range(8):
-                tempPosition =  i * 8 + collumnNumbers[position]
-                
-                if board[tempPosition] == piece:
-                    tempMove = movement.movePiece(tempPosition, board)
-                    
-                    if tempMove != None:
-                        if whereTo in tempMove:
-                            piecesMoving.append(tempMove)
-                            pos = tempPosition
+def makeMove(moveData, board, inCheck):
+  [ piece, position, whereTo ] = moveData
 
-    else:
-        
-        for tempPosition in range(64):
-            
-            if board[tempPosition] == piece:
-                tempMove = movement.movePiece(tempPosition, board)
-                
-                if tempMove != None:
-                    if whereTo in tempMove:
-                        piecesMoving.append(tempMove)
-                        pos = tempPosition
-                        
-    
-    if len(piecesMoving) != 1:
-        return 'Invalid move 2'
-    
-    if whereTo not in piecesMoving[0]:
-        return 'Invalid move 3'
-    
-    tempBoard = list(board)
+  piecesMoving = []
+  pos = ''
+  
+  if isinstance(position, int):
+      if board[position] != piece:
+          return 'Invalid move 1'
+      
+  elif position != '':
+      
+      if position in rows:
+          piecesMoving = []
+              
+          for i in range(8):
+              tempPosition = (int(position) - 1) * 8 + i 
+              
+              if board[tempPosition] == piece:
+                  tempMove = movement.movePiece(tempPosition, board)
+              
+                  if tempMove != None:
+                      if whereTo in tempMove:
+                          piecesMoving.append(tempMove)
+                          pos = tempPosition
+      
+      if position in columns:
+          piecesMoving = []
+          
+          for i in range(8):
+              tempPosition =  i * 8 + collumnNumbers[position]
+              
+              if board[tempPosition] == piece:
+                  tempMove = movement.movePiece(tempPosition, board)
+                  
+                  if tempMove != None:
+                      if whereTo in tempMove:
+                          piecesMoving.append(tempMove)
+                          pos = tempPosition
 
-    tempBoard[pos] = '0'
-    
-    tempBoard[whereTo] = piece
-    
-    finalBoard = ''.join(tempBoard)
-    
-    return finalBoard
+  else:
+      
+      for tempPosition in range(64):
+          
+          if board[tempPosition] == piece:
+              tempMove = movement.movePiece(tempPosition, board)
+              
+              if tempMove != None:
+                  if whereTo in tempMove:
+                      piecesMoving.append(tempMove)
+                      pos = tempPosition
+  
+  if len(piecesMoving) != 1:
+      return 'Invalid move 2'
+  
+  if whereTo not in piecesMoving[0]:
+      return 'Invalid move 3'
+  
+  tempBoard = list(board)
 
-def checkMoveType(move):
+  tempBoard[pos] = '0'
+  
+  tempBoard[whereTo] = piece
+  
+  finalBoard = ''.join(tempBoard)
+  
+  newInCheck = {'White': not checkIfCheck(finalBoard, 'K', [finalBoard.index('K')]), 'Black': not checkIfCheck(finalBoard, 'k', [finalBoard.index('k')])}	
+  
+  if inCheck['White'] and newInCheck['White']:
+    return 'Invalid move 4'
+  if inCheck['Black'] and newInCheck['Black']:
+    return 'Invalid move 5'
+  
+  return [finalBoard, newInCheck]
+
+def checkMoveType(move):  
     position = ''
     piece = move[0]
     
     if move in ['O-O', 'O-O-O']:
         return "Castle"
+    
+    if len(move) == 6:
+      if move[5] in rows:
+        position = (move[2] - 1) * 8 + collumnNumbers[move[1]]
+        column = move[4]
+        row = move[5]
+        return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]  
+      
+    if len(move) == 5:   
+      if move[4] in rows:
+        position = move[1]
+        column = move[3]
+        row = move[4]
+        return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
+        # T 1 x d 4 format
+        # T d x d 4 format
+        
+    if len(move) == 4:
+      if move[3] in rows and move[0] in movingPieces:
+        position = move[1]
+        column = move[2]
+        row = move[3]
+        return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
+        # T d d 4 format
+        # T 1 d 4 format
     
     if move[1] == "x" and move[0] in movingPieces:
         column = move[2]
@@ -151,33 +182,10 @@ def checkMoveType(move):
         row = move[1]
         return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
         # e 4 format
-        
-    if move[3] in rows and move[0] in movingPieces:
-        position = move[1]
-        column = move[2]
-        row = move[3]
-        return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
-        # T d d 4 format
-        # T 1 d 4 format
-        
-    if move[4] in rows:
-        position = move[1]
-        column = move[3]
-        row = move[4]
-        return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
-        # T 1 x d 4 format
-        # T d x d 4 format
-        
-    if move[5] in rows:
-        position = (move[2] - 1) * 8 + collumnNumbers[move[1]]
-        column = move[4]
-        row = move[5]
-        return [piece, position, collumnNumbers[column] + 8 * (int(row) - 1)]
     
     return 'Invalid move 4'
     
 def handleCastle(move, board, piece, moveHistory):
-    
     rows = {
         'K': [0, 1, 2, 3, 4, 5, 6, 7],
         'k': [56, 57, 58, 59, 60, 61, 62, 63]
@@ -256,45 +264,46 @@ def checkIfCheck(board, piece, positions):
                 attackingMoves |= set(movesOfPiece)
 
     attackingMoves = list(attackingMoves)
+    print(attackingMoves)
     for position in positions:
+        print(position)
         if position in attackingMoves:
-            print('false')
             return False
-    
-    print('true')
+          
     return True        
 
 
 def interpreter(data):
-    
-    move = data[0]
-    moveCount = data[1]
-    moveHistory = data[2]
-    board = data[3]
+    [ move, moveCount, moveHistory, board, inCheck ] = data
     
     if not firstCheck(move): return "Move with invalid characters"
     
     try: 
         moveData = checkMoveType(move)
-    except: 
+    except Exception as e: 
+        print (e)
         return 'Invalid move format 6'
     
-    if moveData == 'Invalid move format 7': 
-        return 'Invalid move format 8'
+    if isinstance(moveData, str): return moveData
     
     if moveData == "Castle":
-        # try:
-            piece = 'k' if moveCount % 2 == 0 else 'K'
-            finalBoard = handleCastle(move, board, piece, moveHistory)
-            return [finalBoard, "O-O"]
-        # except Exception as e:
-            return 'Invalid move 9'
-    else:
         try:
+          piece = 'k' if moveCount % 2 == 0 else 'K'
+          finalBoard = handleCastle(move, board, piece, moveHistory)
+          return [finalBoard, "O-O", inCheck]
+        except Exception as e:
+          return 'Invalid move 9'
+    else:
+     #   try:
             if moveCount % 2 == 0: moveData[0] = moveData[0].lower()
             
-            finalBoard = makeMove(moveData, board)
-            data = [finalBoard, moveData]
+            returnData = makeMove(moveData, board, inCheck)
+            if isinstance(returnData, str): return returnData
+            
+            [finalBoard, inCheck] = returnData
+            data = [finalBoard, moveData, inCheck]
+            print(data)
             return data
-        except:
-            return 'Invalid move 10'
+      
+      #  except Exception as e:
+            return f"invalid move 10, {e}"

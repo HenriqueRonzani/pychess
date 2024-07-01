@@ -74,13 +74,19 @@ def updateBoard(screen, board):
 
 #end updateBoard
 
-def plotBoard(screen, moves):
+def plotBoard(screen, moves, board, inCheck):
     black = (118,150,86)
     white = (238,238,210)
     
     for i in range(8):
         for j in range(8):
-            color = white if (i + j) % 2 == 0 else black
+            if board[abs(7-i)*8 + j] == 'k' and inCheck['Black']:
+              color = (255, 0, 0)
+            elif board[abs(7-i)*8 + j] == 'K' and inCheck['White']:
+              color = (255, 0, 0)
+            else:
+              color = white if (i + j) % 2 == 0 else black
+            
             pygame.draw.rect(screen, color, (j*100, i*100, 100, 100))
     
     pygame.draw.rect(screen, (255, 255, 255), (800, 0, 800, 1000))
@@ -109,23 +115,21 @@ def handleInput(screen, textinput, events):
 
 #end handleInput
 
-def handleMove(textinput, moveCount, moveHistory, board):
-    data = [textinput.value, moveCount, moveHistory, board]
+def handleMove(textinput, moveCount, moveHistory, board, inCheck):
+    data = [textinput.value, moveCount, moveHistory, board, inCheck]
     
     returnData = interpreter(data)
     
-    newBoard = returnData[0]
-    moveData = returnData[1]
-    
     textinput.value = ''
     
-    if len(newBoard) != 64:
-        messagebox.showinfo('Error', newBoard)
-        data = [moveCount, board, moveHistory]
+    if not isinstance(returnData, list):
+        messagebox.showinfo('Error', returnData)
+        data = [moveCount, board, moveHistory, inCheck]
         return data
     else:
+        [ newBoard, moveData, newInCheck ] = returnData
         moveHistory.append(moveData)
-        data = [moveCount+1, newBoard, moveHistory]
+        data = [moveCount+1, newBoard, moveHistory, newInCheck]
         return data
 
 def run():
@@ -138,6 +142,7 @@ def run():
     
     moveCount = 1
     moveHistory = []
+    inCheck = {'White': False, 'Black': False}
 
     clock = pygame.time.Clock()
 
@@ -151,13 +156,11 @@ def run():
                 if textinput.value == "": 
                     messagebox.showinfo("No move written", "Type a move with your keyboard")
                 else:
-                    data = handleMove(textinput, moveCount, moveHistory, board)
-                    moveCount = data[0]
-                    board = data[1]
-                    moveHistory = data[2]
-            
+                    data = handleMove(textinput, moveCount, moveHistory, board, inCheck)
+                    [ moveCount, board, moveHistory, inCheck ] = data
+                    
         #Game logic
-        plotBoard(screen, moveCount)
+        plotBoard(screen, moveCount, board, inCheck)
         
         updateBoard(screen, board)
         handleInput(screen, textinput, events)
